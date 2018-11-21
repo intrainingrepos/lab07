@@ -26,6 +26,8 @@ app.get('/location', (request, response) => {
 
 app.get('/weather', getWeather);
 
+app.get('/yelp', getRestaurant);
+
 // Make sure the server is listening for requests
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
@@ -48,6 +50,14 @@ function Weather(day) {
   this.time = new Date(day.time * 1000).toString().slice(0, 15);
 }
 
+function Yelp(restaurant) {
+  this.name = restaurant.name;
+  this.image_url = restaurant.image_url;
+  this.price = restaurant.price;
+  this.rating = restaurant.rating;
+  this.url = restaurant.url;
+}
+
 // Helper Functions
 function searchToLatLong(query) {
   console.log('this is our query', query);
@@ -64,13 +74,30 @@ function getWeather(request, response) {
   const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
 
   superagent.get(url)
-    .then(result => {
+    .then((result) => {
       const weatherSummaries = result.body.daily.data.map(day => {
         return new Weather(day);
       });
-      console.log('this is the weather', weatherSummaries);
+      // console.log('this is the weather', weatherSummaries);
 
       response.send(weatherSummaries);
     })
     .catch(error => handleError(error, response));
+}
+
+function getRestaurant(request, response) { 
+  console.log('restaurant function called')
+  const url = `https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${request.query.data.latitude}&longitude=${request.query.data.longitude}`;
+  superagent.get(url)
+            .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
+            .then((yelp_API_response) =>  { 
+              console.log('getting stuff');
+              const yelpSummaries = yelp_API_response.body.businesses.map(restaurant => {
+                return new Yelp(restaurant);
+              });
+              console.log('new rest', yelp_API_response);
+              response.send(yelpSummaries);
+              console.log('summaries', yelpSummaries);
+            })
+            .catch(error => handleError(error, response));
 }
