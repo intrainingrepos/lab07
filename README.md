@@ -25,11 +25,11 @@
 
 Estimate of time needed to complete: 2hr
 
-Start time: _____
+Start time: 10
 
-Finish time: _____
+Finish time: 1045
 
-Actual time needed to complete: _____
+Actual time needed to complete: 45 min
 
 
 ## Number and name of feature: Feature #2: Retrieve restaurant information
