@@ -15,8 +15,12 @@ app.use(cors());
 
 // API Routes
 app.get('/location', (request, response) => {
+  console.log('location route hit');
   searchToLatLong(request.query.data)
-    .then(location => response.send(location))
+    .then(location => { 
+      console.log('this is our location', location);
+     return response.send(location)
+    })
     .catch(error => handleError(error, response));
 })
 
@@ -27,7 +31,7 @@ app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 // Error handler
 function handleError(err, res) {
-  console.error(err);
+  // console.error(err);
   if (res) res.status(500).send('Sorry, something went wrong');
 }
 
@@ -46,10 +50,11 @@ function Weather(day) {
 
 // Helper Functions
 function searchToLatLong(query) {
+  console.log('this is our query', query);
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${query}&key=${process.env.GEOCODE_API_KEY}`;
-
+  console.log('this is the url', url);
   return superagent.get(url)
-    .then(res => {
+    .then((res) => {
       return new Location(query, res);
     })
     .catch(error => handleError(error));
@@ -63,6 +68,7 @@ function getWeather(request, response) {
       const weatherSummaries = result.body.daily.data.map(day => {
         return new Weather(day);
       });
+      console.log('this is the weather', weatherSummaries);
 
       response.send(weatherSummaries);
     })
