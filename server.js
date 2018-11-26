@@ -28,6 +28,8 @@ app.get('/weather', getWeather);
 
 app.get('/yelp', getRestaurant);
 
+app.get('/movies', getMovies);
+
 // Make sure the server is listening for requests
 app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
@@ -58,6 +60,15 @@ function Yelp(restaurant) {
   this.url = restaurant.url;
 }
 
+function Movie(movie) {
+  this.title = movie.title;
+  this.popularity = movie.popularity;
+  this.average_votes = movie.vote_average;
+  this.overview = movie.overview;
+  this.total_votes = movie.vote_count;
+  this.released_on = movie.released_date;
+  this.image_url = `http://image.tmdb.org/t/p/w185/${movie.poster_path}`;
+}
 // Helper Functions
 function searchToLatLong(query) {
   console.log('this is our query', query);
@@ -86,18 +97,33 @@ function getWeather(request, response) {
 }
 
 function getRestaurant(request, response) { 
-  console.log('restaurant function called')
+  // console.log('restaurant function called')
   const url = `https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=${request.query.data.latitude}&longitude=${request.query.data.longitude}`;
   superagent.get(url)
             .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
             .then((yelp_API_response) =>  { 
-              console.log('getting stuff');
+              // console.log('getting stuff');
               const yelpSummaries = yelp_API_response.body.businesses.map(restaurant => {
                 return new Yelp(restaurant);
               });
-              console.log('new rest', yelp_API_response);
+              // console.log('new rest', yelp_API_response);
               response.send(yelpSummaries);
-              console.log('summaries', yelpSummaries);
+              // console.log('summaries', yelpSummaries);
             })
             .catch(error => handleError(error, response));
+}
+
+function getMovies(request, response) {
+  console.log('movie function was called')
+  const url = `https://api.themoviedb.org/3/search/movie?query=${request.query.data.search_query}&api_key=${process.env.MOVIEDB_API_KEY}`;
+	superagent.get(url)
+	          .then(result => {
+              console.log(result.body);
+		          const movieSummaries = result.body.results.map(movie => {
+			          return new Movie(movie);
+              });
+              // console.log('get movies', result);
+	            response.send(movieSummaries);
+	          })
+	          .catch(error => handleError(error, response));
 }
